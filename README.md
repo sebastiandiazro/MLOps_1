@@ -47,3 +47,11 @@ Implementamos una API utilizando el framework FastAPI con las siguientes funcion
 + def **get_director( *`nombre_director`* )**:
     Se ingresa el nombre de un director que se encuentre dentro de un dataset debiendo devolver el éxito del mismo medido a través del retorno. Además, deberá devolver el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma.
 
+
+### Sistema de recomendación
+
+Entrenamos un modelo de machine learning para crear un sistema de recomendación de películas basado en similitud de contenido. Este sistema recomienda películas similares a una dada. Entrenamos el modelo utilizando TF-IDF y similitud de coseno.
+
++ def **recomendacion( *`titulo`* )**:
+    Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
+
