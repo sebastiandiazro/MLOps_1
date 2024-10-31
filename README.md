@@ -1,6 +1,15 @@
 # MLOps_1
 
 
+## Descripción del problema (Contexto y rol a desarrollar)
+### Contexto
+
+Este repositorio contiene el primer proyecto de Machine Learning en un start-up que provee servicios de agregación de plataformas de streaming. Nuestro objetivo principal es crear un sistema de recomendación de películas que aún no ha sido puesto en marcha. Tambien incluye una extraccion (ETL) y un Analisis Exploratorio de Datos (EDA)
+
+### Rol a desarrollar
+
+Como Data Scientist en la start-up, enfrentamos el desafío de trabajar con datos no estructurados y sin procesos automatizados para la actualización de información sobre películas y series. Debemos transformar estos datos y crear un MVP (Minimum Viable Product) rápidamente.
+
 
 ### Propuesta de trabajo
 
