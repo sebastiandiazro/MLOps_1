@@ -32,7 +32,8 @@ Implementamos una API utilizando el framework FastAPI con las siguientes funcion
 + def **score_titulo( *`titulo_de_la_filmación`* )**:
     Se ingresa el título de una filmación esperando como respuesta el título, el año de estreno y el score.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ejemplo de retorno:
-*La película `X` fue estrenada en el año `X` con un score/popularidad de `X`*
+
+                *La película `X` fue estrenada en el año `X` con un score/popularidad de `X`*
 
 + def **votos_titulo( *`titulo_de_la_filmación`* )**:
     Se ingresa el título de una filmación esperando como respuesta el título, la cantidad de votos y el valor promedio de las votaciones. La misma variable deberá de contar con al menos 2000 valoraciones, caso contrario, debemos contar con un mensaje avisando que no cumple esta condición y que por ende, no se devuelve ningun valor.
