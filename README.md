@@ -1,6 +1,6 @@
 # Machine Learning Operations (MLOps)
 
-![alt text](MLOps.jpg)
+![alt text](Mlops.jpg) 
 
 ## Descripción del problema (Contexto y rol a desarrollar)
 ### Contexto
