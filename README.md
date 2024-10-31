@@ -4,7 +4,7 @@
 ## Descripción del problema (Contexto y rol a desarrollar)
 ### Contexto
 
-Este repositorio contiene el primer proyecto de Machine Learning en un start-up que provee servicios de agregación de plataformas de streaming. Nuestro objetivo principal es crear un sistema de recomendación de películas que aún no ha sido puesto en marcha. Tambien incluye una extraccion (ETL) y un Analisis Exploratorio de Datos (EDA)
+Este repositorio contiene el primer proyecto de Machine Learning en FastApi de un start-up que provee servicios de agregación de plataformas de streaming. Nuestro objetivo principal es crear un sistema de recomendación de películas que aún no ha sido puesto en marcha. Tambien incluye una extraccion (ETL) y un Analisis Exploratorio de Datos (EDA)
 
 ### Rol a desarrollar
 
