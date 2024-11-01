@@ -10,21 +10,15 @@ app = FastAPI()
 
 # Especificar las rutas absolutas a los archivos Parquet usando raw strings para evitar problemas con las barras invertidas
 movies_df_path = 'Datasets/movies_df.parquet'
-credits_cast_df_path = 'Datasets/credits_cast_df.parquet'
-credits_crew_df_path = 'Datasets/credits_crew_df.parquet'
 
 # Verificar que los archivos existen
 if not os.path.exists(movies_df_path):
     raise FileNotFoundError(f"Archivo no encontrado: {movies_df_path}")
-if not os.path.exists(credits_cast_df_path):
-    raise FileNotFoundError(f"Archivo no encontrado: {credits_cast_df_path}")
-if not os.path.exists(credits_crew_df_path):
-    raise FileNotFoundError(f"Archivo no encontrado: {credits_crew_df_path}")
+
 
 # Leer los archivos Parquet y cargar DataFrames
 movies_df = pd.read_parquet(movies_df_path)
-credits_cast_df = pd.read_parquet(credits_cast_df_path)
-credits_crew_df = pd.read_parquet(credits_crew_df_path)
+
 
 # Ruta raíz que devuelve un mensaje de bienvenida
 @app.get("/")
