@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 import pandas as pd
 import os
+import ast
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -120,7 +121,7 @@ def votos_titulo(titulo: str):
 
 # Endpoint 5: Se ingresa el nombre de un actor, devuelve el éxito del mismo medido a través del retorno, la cantidad de películas en las que ha participado y el promedio de retorno
 @app.get("/get_actor/{nombre_actor}")
-async def get_actor(nombre_actor: str):
+def get_actor(nombre_actor: str):
 
     #Convierto a minuscula
     nombre_actor = nombre_actor.lower()
@@ -144,7 +145,7 @@ async def get_actor(nombre_actor: str):
 
 # Endpoint 6: Se ingresa el nombre de un director, devuelve el éxito del mismo medido a través del retorno. Además, devuelve el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma
 @app.get("/get_director/{nombre_director}")
-async def get_director(nombre_director: str) -> dict:
+def get_director(nombre_director: str) -> dict:
 
     #Convierto a minuscula
     nombre_director = nombre_director.lower()
@@ -194,7 +195,7 @@ tfidf_matriz = tfidf.fit_transform(df_recomendacion['features'])
 indices = pd.Series(df_recomendacion.index, index=df_recomendacion['title']).drop_duplicates()
 
 @app.get('/recomendacion_pelicula/{titulo}')
-async def recomendacion_pelicula(titulo: str):
+def recomendacion_pelicula(titulo: str):
 
     #Verificar si el titulo se encuentra en los datos
     if titulo not in indices:
