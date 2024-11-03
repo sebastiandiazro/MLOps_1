@@ -229,3 +229,9 @@ async def recomendacion_pelicula(titulo: str):
 
     #Devolver las películas recomendadas.
     return recommended_movies
+
+
+# Ejecutar la aplicación con Uvicorn
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
