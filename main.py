@@ -12,7 +12,7 @@ app = FastAPI()
 app.title = "MLOps plataforma de streaming"
 
 # Especificar las rutas absolutas a los archivos Parquet usando raw strings para evitar problemas con las barras invertidas
-movies_df_path = 'Dataset/movies_df.parquet' 
+movies_df_path = 'Datasets/movies_df.parquet' 
 
 # Verificar que los archivos existen
 if not os.path.exists(movies_df_path):
