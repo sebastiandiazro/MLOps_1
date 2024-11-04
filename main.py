@@ -204,61 +204,40 @@ def get_director(nombre_director: str) -> dict:
     return respuesta
 
 
-
 # Sistema de recomendacion: Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
 
+# Cargar el DataFrame de recomendaciones
 df_recomendacion = pd.read_parquet('Datasets/df_recomendacion.parquet')
 
-# Asegúrate de que cada entrada en 'features' sea un string
-df_recomendacion['features'] = df_recomendacion['features'].astype(str)
-
-# Pasa la columna como lista de strings
-vectorizer = TfidfVectorizer()
-tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'].tolist())
+# Asegurarse de que 'features' sea una cadena unificada si es una lista
+df_recomendacion['features'] = df_recomendacion['features'].apply(lambda x: ' '.join(x) if isinstance(x, list) else str(x))
 
 # Vectorización del texto usando TF-IDF
+vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'])
 
-#Obtengo el índice del título ingresado.
+# Crear un índice para los títulos
 indices = pd.Series(df_recomendacion.index, index=df_recomendacion['title']).drop_duplicates()
 
-@app.get('/recomendacion_pelicula/{titulo}')
-async def recomendacion_pelicula(titulo: str):
-
-    #Verificar si el titulo se encuentra en los datos
+def recomendacion(titulo: str) -> list:
+    # Verificar si el título existe en el índice
     if titulo not in indices:
-        #Si no lo encuentra devuelvo un error
-        raise HTTPException(status_code=404, detail="Película no encontrada")
-    
-    #Obtener el indice del título ingresado.
+        raise ValueError("Película no encontrada")
+
+    # Obtener el índice de la película en el DataFrame
     idx = indices[titulo]
-    
-    #Calcular la similitud del coseno
-    cosine_sim = cosine_similarity(tfidf_matriz[idx:idx+1], tfidf_matriz).flatten()
 
-    #Guardar los scores de similitud en una lista de tuplas, donde el primer elemento es el índice y el segundo es el score.
-    sim_scores = list(enumerate(cosine_sim))
-    #Ordenar la lista de mayor a menor.
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    # Calcular la similitud del coseno entre la película seleccionada y todas las demás
+    cosine_sim = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
 
+    # Obtener las películas más similares, ordenadas por similitud
+    sim_scores = sorted(list(enumerate(cosine_sim)), key=lambda x: x[1], reverse=True)
 
-    #Obtener las 6 películas más similares (incluyendo la misma pelicula)
-    sim_scores = sim_scores[:6]
+    # Seleccionar las 5 películas más similares, excluyendo la misma película
+    recommended_indices = [i for i, score in sim_scores[1:6]]
+    recommended_movies = df_recomendacion['title'].iloc[recommended_indices].tolist()
 
-    #Excluir la primera película si es la misma que se ingresó
-    if sim_scores[0][0] == idx:
-        sim_scores = sim_scores[1:6]
-    else:
-        sim_scores = sim_scores[:5]
-
-    #Obtener los títulos de las películas recomendadas y los convierto en lista.
-    movies_indices = [i[0] for i in sim_scores]
-    recommended_movies = df_recomendacion['title'].iloc[movies_indices].tolist()
-    
-
-    #Devolver las películas recomendadas.
     return recommended_movies
-
 
 # Ejecutar la aplicación con Uvicorn
 if __name__ == "__main__":
