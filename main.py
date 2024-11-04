@@ -119,6 +119,8 @@ def votos_titulo(titulo: str):
     
     return f"La película '{titulo}' fue estrenada en el año {año_estreno}. La misma cuenta con un total de {cantidad_votos} valoraciones, con un promedio de {promedio_votos}"
 
+# Endpoint 5: Se ingresa el nombre de un actor, devuelve el éxito del mismo medido a través del retorno, la cantidad de películas en las que ha participado y el promedio de retorno
+@app.get("/get_actor/{nombre_actor}")
 def get_actor(nombre_actor: str):
 
     #Convierto a minuscula
@@ -177,6 +179,71 @@ def get_director(nombre_director: str) -> dict:
     }
 
     return respuesta
+
+# Sistema de recomendacion: Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
+
+# Vectorización del texto usando TF-IDF
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(movies_df['combined_features'])
+
+@app.get("/recomendacion/{titulo}")
+def recomendacion(titulo: str):
+
+    # Convertir el título ingresado a minúsculas para comparación insensible a mayúsculas/minúsculas
+    titulo = titulo.lower()
+
+    if titulo not in movies_df['title'].str.lower().values:
+        return f"La película '{titulo}' no se encontró en el dataset."
+    
+    # Obtener el índice de la película con el título dado
+    idx = movies_df[movies_df['title'].str.lower() == titulo].index[0]
+    
+    # Calcular la similitud del coseno entre la película dada y todas las demás
+    cosine_sim = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
+
+    # Obtener el ID de la colección de la película consultada
+    collection_id = movies_df.at[idx, 'belongs_to_collection_id']
+    
+    # Obtener los índices de las películas con mayor similitud
+    similar_indices = cosine_sim.argsort()[::-1][1:6]
+    
+    # Obtener los títulos de las películas similares
+    similar_movies = movies_df.iloc[similar_indices]['title'].tolist()
+
+    # Si la película pertenece a una colección, priorizar las películas de la misma colección
+    if pd.notnull(collection_id):
+        collection_movies = movies_df[movies_df['belongs_to_collection_id'] == collection_id]['title'].tolist()
+        similar_movies = collection_movies + [movie for movie in similar_movies if movie not in collection_movies]
+
+    # Excluir la película que se pasó como argumento de la lista de recomendaciones
+    similar_movies = [movie for movie in similar_movies if movie.lower() != titulo]
+
+    # Eliminar duplicados manteniendo el orden
+    similar_movies = list(dict.fromkeys(similar_movies))
+
+    # Si hay menos de 5 recomendaciones, agregar más basadas en la similitud
+    if len(similar_movies) < 5:
+        additional_indices = cosine_sim.argsort()[::-1][6:]
+        additional_movies = movies_df.iloc[additional_indices]['title'].tolist()
+        additional_movies = [movie for movie in additional_movies if movie not in similar_movies and movie != titulo]
+        similar_movies.extend(additional_movies[:5 - len(similar_movies)])
+    
+    # Asegurarse de que no haya duplicados en la lista final
+    final_recommendations = []
+    for movie in similar_movies:
+        if movie not in final_recommendations:
+            final_recommendations.append(movie)
+        if len(final_recommendations) == 5:
+            break
+    
+    # Si después de eliminar duplicados aún hay menos de 5 recomendaciones, añadir más basadas en la similitud
+    if len(final_recommendations) < 5:
+        additional_indices = cosine_sim.argsort()[::-1][len(similar_movies)+1:]
+        additional_movies = movies_df.iloc[additional_indices]['title'].tolist()
+        additional_movies = [movie for movie in additional_movies if movie not in final_recommendations and movie != titulo]
+        final_recommendations.extend(additional_movies[:5 - len(final_recommendations)])
+    
+    return final_recommendations[:5]
 
 
 # Ejecutar la aplicación con Uvicorn
