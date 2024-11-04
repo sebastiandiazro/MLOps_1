@@ -134,30 +134,31 @@ async def votos_titulo(titulo: str):
     return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
 # Endpoint 5: Se ingresa el nombre de un actor, devuelve el éxito del mismo medido a través del retorno, la cantidad de películas en las que ha participado y el promedio de retorno
-@app.get('/get_actor/{nombre_actor}')
-def get_actor(nombre_actor: str):
-    # Convertir a minúscula
+@app.get("/get_actor/{nombre_actor}")
+def get_actor(nombre_actor: str) -> str:
+    # Convertir el nombre del actor a minúsculas para la búsqueda
     nombre_actor = nombre_actor.lower()
 
-    # Filtrar las películas donde aparece el actor y no es director
-    peliculas_actor = df_movies[
-        (df_movies['actors'].apply(lambda x: isinstance(x, list) and nombre_actor in [actor.lower() for actor in x])) & 
+    # Filtrar por actor en la lista y verificar que no es el director
+    peliculas_actor = df_movies.loc[
+        df_movies['actors'].apply(lambda actores: nombre_actor in [actor.lower() for actor in actores]) & 
         (df_movies['director'].str.lower() != nombre_actor)
     ]
 
-    # Si no hay películas del actor, devuelve un error
+    # Manejo de error si no hay películas con el actor solicitado
     if peliculas_actor.empty:
-        raise HTTPException(status_code=404, detail=f"No se encontró el actor: {nombre_actor} o aparece como director")
+        raise HTTPException(status_code=404, detail=f"No se encontró el actor: {nombre_actor} o aparece solo como director")
 
-    # Calcular requeridos
+    # Calcular cantidad de películas, retorno total y promedio de retorno
     cantidad_peliculas = len(peliculas_actor)
-    retorno = peliculas_actor['return'].sum()
-    promedio_retorno = retorno / cantidad_peliculas
+    retorno_total = peliculas_actor['return'].fillna(0).sum()
+    promedio_retorno = retorno_total / cantidad_peliculas
 
-    return {
-        "mensaje": f"El actor {nombre_actor.title()} ha participado de {cantidad_peliculas} filmaciones, "
-                   f"con un retorno total de {retorno:.2f} y un promedio de {promedio_retorno:.2f} por filmación"
-    }
+    # Formatear y retornar la respuesta
+    respuesta = (f"El actor {nombre_actor.title()} ha participado en {cantidad_peliculas} filmaciones, "
+                 f"obteniendo un retorno total de {retorno_total:.2f} y un promedio de {promedio_retorno:.2f} por filmación.")
+    return respuesta
+
 
 # Endpoint 6: Se ingresa el nombre de un director, devuelve el éxito del mismo medido a través del retorno. Además, devuelve el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma
 @app.get("/get_director/{nombre_director}")
