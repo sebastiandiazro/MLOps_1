@@ -188,10 +188,10 @@ df_recomendacion = pd.read_parquet('Datasets/df_recomendacion.parquet')
 df_recomendacion['features'] = df_recomendacion['features'].astype(str)
 
 # Pasa la columna como lista de strings
+vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'].tolist())
 
 # Vectorización del texto usando TF-IDF
-vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'])
 
 @app.get("/recomendacion/{titulo}")
