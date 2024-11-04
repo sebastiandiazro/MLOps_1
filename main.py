@@ -134,13 +134,6 @@ async def votos_titulo(titulo: str):
     return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
 # Endpoint 5: Se ingresa el nombre de un actor, devuelve el éxito del mismo medido a través del retorno, la cantidad de películas en las que ha participado y el promedio de retorno
-from fastapi import FastAPI, HTTPException
-
-app = FastAPI()
-
-# Simula la carga del DataFrame (asegúrate de tener un DataFrame real cargado en tu caso)
-# Ejemplo: df_movies = pd.read_csv('ruta_a_tu_archivo.csv')
-
 @app.get('/get_actor/{nombre_actor}')
 def get_actor(nombre_actor: str):
     # Convertir a minúscula
