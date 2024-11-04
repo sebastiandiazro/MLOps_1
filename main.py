@@ -161,36 +161,42 @@ def get_actor(nombre_actor: str):
 
 # Endpoint 6: Se ingresa el nombre de un director, devuelve el éxito del mismo medido a través del retorno. Además, devuelve el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma
 @app.get("/get_director/{nombre_director}")
-async def get_director(nombre_director: str) -> dict:
-
-    #Convierto a minuscula
+def get_director(nombre_director: str) -> dict:
+    # Convertir a minúscula para búsqueda
     nombre_director = nombre_director.lower()
 
-    #Filtro las peliculas por director
+    # Filtrar películas por director
     peliculas_director = df_movies[df_movies['director'].str.lower() == nombre_director]
 
-    #Si no encuentra las peliculas de acuerdo al director, devuelve error
+    # Comprobación si no hay resultados
     if peliculas_director.empty:
-        raise HTTPException(status_code=404, detail=f"No se encontro el director: {nombre_director}.")
+        raise HTTPException(status_code=404, detail=f"No se encontró el director: {nombre_director}.")
     
-    #Calculo el exito total del director a traves del retorno
-    retorno = peliculas_director['return'].sum()
+    # Calcular el retorno total
+    retorno_total = peliculas_director['return'].fillna(0).sum()
 
-    #Preparo los detalles que necesito de las peliculas
+    # Preparar la información de las películas
     peliculas_info = []
     for _, pelicula in peliculas_director.iterrows():
+        # Validación de datos individuales
+        titulo = pelicula.get('title', 'Título desconocido')
+        fecha = pelicula['release_date'] if pd.notnull(pelicula['release_date']) else "Fecha desconocida"
+        retorno = pelicula.get('return', 0)
+        costo = pelicula.get('budget', 0)
+        ganancia = pelicula.get('revenue', 0) - costo if pd.notnull(pelicula.get('revenue')) else 0
+
         peliculas_info.append({
-            "titulo": pelicula['title'],
-            "fecha_lanzamiento": pelicula['release_date'].strftime('%Y-%m-%d'),
-            "retorno": round(pelicula['return'], 2),
-            "costo": round(pelicula['budget'], 2),
-            "ganancia": round(pelicula['revenue'] - pelicula['budget'], 2)
+            "titulo": titulo,
+            "fecha_lanzamiento": fecha.strftime('%Y-%m-%d') if isinstance(fecha, pd.Timestamp) else fecha,
+            "retorno": round(retorno, 2),
+            "costo": round(costo, 2),
+            "ganancia": round(ganancia, 2)
         })
-    
+
 
     respuesta = {
         "director": nombre_director.title(), 
-        "retorno": round(retorno, 2), 
+        "retorno_total": round(retorno_total, 2), 
         "peliculas": peliculas_info
     }
 
