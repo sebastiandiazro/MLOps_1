@@ -184,6 +184,12 @@ def get_director(nombre_director: str) -> dict:
 
 df_recomendacion = pd.read_parquet('Datasets/df_recomendacion.parquet')
 
+# Asegúrate de que cada entrada en 'features' sea un string
+df_recomendacion['features'] = df_recomendacion['features'].astype(str)
+
+# Pasa la columna como lista de strings
+tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'].tolist())
+
 # Vectorización del texto usando TF-IDF
 vectorizer = TfidfVectorizer()
 tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'])
