@@ -77,47 +77,61 @@ def cantidad_filmaciones_dia(dia: str):
     return f"{cantidad} películas fueron estrenadas el día {dia.capitalize()}"
 
 # Endpoint 3: Se ingresa el título de una filmación, devuelve el título, el año de estreno y el score
-@app.get("/score_titulo/{titulo}")
-def score_titulo(titulo: str):
+@app.get('/score_titulo/{titulo}')
+async def score_titulo(titulo: str):
 
-   # Filtrar el DataFrame para encontrar la fila con el título especificado
-    filmacion = df_movies[df_movies['title'].str.lower() == titulo.lower()]
+    #Convierto el a minuscula para que la funcion distinga entre minusculas y mayusculas(case-insensitive)
+    titulo = titulo.lower()
+
+    #Busco la pelicula
+    pelicula = df_movies[df_movies['title'].str.lower() == titulo]
+
+    #Si no esta la pelicula, devuelve un error de tipo 404
+    if pelicula.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontro la pelicula: {titulo}")
     
-    # Verificar si se encontró la filmación
-    if filmacion.empty:
-        return f"No se encontró ninguna filmación con el título '{titulo}'"
-    
-    # Extraer la información de la filmación
-    titulo = filmacion['title'].values[0]
-    año_estreno = filmacion['release_year'].values[0]
-    score = filmacion['popularity'].values[0]
-    
-    return f"La película '{titulo}' fue estrenada en el año {año_estreno} con un score de {score}"
+    if len(pelicula) > 1:
+        pelicula = pelicula.iloc[0]
+    else:
+        pelicula = pelicula.iloc[0]
+
+    #Extraigo el titulo, el año de lanzamiento y el puntaje
+    titulo_original = pelicula['title']
+    año_estreno = pelicula['release_year']
+    score = pelicula['vote_average']
+
+    return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno} con un score/popularidad de {score}"
 
 # Endpoint 4: Se ingresa el título de una filmación, devuelve el título, la cantidad de votos y el valor promedio de las votaciones (No devuelve ningun valor si cuenta con menos de 2000 valoraciones) 
-@app.get("/votos_titulo/{titulo}")
-def votos_titulo(titulo: str):
+@app.get('/votos_titulo/{titulo}')
+async def votos_titulo(titulo: str):
 
-    # Filtrar el DataFrame para encontrar la fila con el título especificado
-    filmacion = df_movies[df_movies['title'].str.lower() == titulo.lower()]
-    
-    # Verificar si se encontró la filmación
-    if filmacion.empty:
-        return f"No se encontró ninguna filmación con el título '{titulo}'"
-    
-    # Extraer la cantidad de votos
-    cantidad_votos = filmacion['vote_count'].values[0]
-    
-    # Verificar si la cantidad de votos es al menos 2000
-    if cantidad_votos < 2000:
-        return f"La película '{titulo}' no cumple con la condición de tener al menos 2000 valoraciones."
-    
-    # Extraer el valor promedio de votaciones
-    promedio_votos = filmacion['vote_average'].values[0]
-    titulo = filmacion['title'].values[0]
-    año_estreno = filmacion['release_year'].values[0]
-    
-    return f"La película '{titulo}' fue estrenada en el año {año_estreno}. La misma cuenta con un total de {cantidad_votos} valoraciones, con un promedio de {promedio_votos}"
+    #Covierto el titulo en minuscula
+    titulo = titulo.lower()
+
+    #Busco la pelicula
+    pelicula = df_movies[df_movies['title'].str.lower() == titulo]
+
+    #Devuelvo un error si no encuentra la pelicula
+    if pelicula.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontro la pelicula: {titulo}")
+
+    if len(pelicula) > 1:
+        pelicula = pelicula.iloc[0]
+    else:
+        pelicula = pelicula.iloc[0]
+        
+    #Extraigo el titulo,la cantidad de votos y valor promedio de las votaciones
+    titulo_original = pelicula['title']
+    año_estreno = pelicula['release_year']
+    votos_totales = pelicula['vote_count']
+    promedio_votos = pelicula['vote_average']
+
+    #Verifico si la pelicula tiene al menos 2000 valoraciones
+    if votos_totales < 2000:
+        return f"La pelicula {titulo_original} no cumple con la condicion de contar al menos 2000 valoraciones. Cuenta con {votos_totales} valoraciones"
+
+    return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
 # Endpoint 5: Se ingresa el nombre de un actor, devuelve el éxito del mismo medido a través del retorno, la cantidad de películas en las que ha participado y el promedio de retorno
 @app.get("/get_actor/{nombre_actor}")
