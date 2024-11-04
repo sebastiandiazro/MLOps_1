@@ -182,9 +182,11 @@ def get_director(nombre_director: str) -> dict:
 
 # Sistema de recomendacion: Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
 
+df_recomendacion = pd.read_parquet('Datasets/df_recomendacion.parquet')
+
 # Vectorización del texto usando TF-IDF
 vectorizer = TfidfVectorizer()
-tfidf_matrix = vectorizer.fit_transform(df_movies['features'])
+tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'])
 
 @app.get("/recomendacion/{titulo}")
 def recomendacion(titulo: str):
