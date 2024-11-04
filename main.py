@@ -219,6 +219,7 @@ tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'])
 # Crear un índice para los títulos
 indices = pd.Series(df_recomendacion.index, index=df_recomendacion['title']).drop_duplicates()
 
+@app.get('/recomendacion_pelicula/{titulo}')
 def recomendacion(titulo: str) -> list:
     # Verificar si el título existe en el índice
     if titulo not in indices:
