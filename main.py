@@ -194,64 +194,45 @@ tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'].tolist())
 # Vectorización del texto usando TF-IDF
 tfidf_matrix = vectorizer.fit_transform(df_recomendacion['features'])
 
-@app.get("/recomendacion/{titulo}")
-def recomendacion(titulo: str):
+#Obtengo el índice del título ingresado.
+indices = pd.Series(df_recomendacion.index, index=df_recomendacion['title']).drop_duplicates()
 
-    # Convertir el título ingresado a minúsculas para comparación insensible a mayúsculas/minúsculas
-    titulo = titulo.lower()
+@app.get('/recomendacion_pelicula/{titulo}')
+async def recomendacion_pelicula(titulo: str):
 
-    if titulo not in movies_df['title'].str.lower().values:
-        return f"La película '{titulo}' no se encontró en el dataset."
+    #Verificar si el titulo se encuentra en los datos
+    if titulo not in indices:
+        #Si no lo encuentra devuelvo un error
+        raise HTTPException(status_code=404, detail="Película no encontrada")
     
-    # Obtener el índice de la película con el título dado
-    idx = movies_df[movies_df['title'].str.lower() == titulo].index[0]
+    #Obtener el indice del título ingresado.
+    idx = indices[titulo]
     
-    # Calcular la similitud del coseno entre la película dada y todas las demás
-    cosine_sim = cosine_similarity(tfidf_matrix[idx], tfidf_matrix).flatten()
+    #Calcular la similitud del coseno
+    cosine_sim = cosine_similarity(tfidf_matriz[idx:idx+1], tfidf_matriz).flatten()
 
-    # Obtener el ID de la colección de la película consultada
-    collection_id = movies_df.at[idx, 'belongs_to_collection_id']
-    
-    # Obtener los índices de las películas con mayor similitud
-    similar_indices = cosine_sim.argsort()[::-1][1:6]
-    
-    # Obtener los títulos de las películas similares
-    similar_movies = movies_df.iloc[similar_indices]['title'].tolist()
+    #Guardar los scores de similitud en una lista de tuplas, donde el primer elemento es el índice y el segundo es el score.
+    sim_scores = list(enumerate(cosine_sim))
+    #Ordenar la lista de mayor a menor.
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    # Si la película pertenece a una colección, priorizar las películas de la misma colección
-    if pd.notnull(collection_id):
-        collection_movies = movies_df[movies_df['belongs_to_collection_id'] == collection_id]['title'].tolist()
-        similar_movies = collection_movies + [movie for movie in similar_movies if movie not in collection_movies]
 
-    # Excluir la película que se pasó como argumento de la lista de recomendaciones
-    similar_movies = [movie for movie in similar_movies if movie.lower() != titulo]
+    #Obtener las 6 películas más similares (incluyendo la misma pelicula)
+    sim_scores = sim_scores[:6]
 
-    # Eliminar duplicados manteniendo el orden
-    similar_movies = list(dict.fromkeys(similar_movies))
+    #Excluir la primera película si es la misma que se ingresó
+    if sim_scores[0][0] == idx:
+        sim_scores = sim_scores[1:6]
+    else:
+        sim_scores = sim_scores[:5]
 
-    # Si hay menos de 5 recomendaciones, agregar más basadas en la similitud
-    if len(similar_movies) < 5:
-        additional_indices = cosine_sim.argsort()[::-1][6:]
-        additional_movies = movies_df.iloc[additional_indices]['title'].tolist()
-        additional_movies = [movie for movie in additional_movies if movie not in similar_movies and movie != titulo]
-        similar_movies.extend(additional_movies[:5 - len(similar_movies)])
+    #Obtener los títulos de las películas recomendadas y los convierto en lista.
+    movies_indices = [i[0] for i in sim_scores]
+    recommended_movies = df_recomendacion['title'].iloc[movies_indices].tolist()
     
-    # Asegurarse de que no haya duplicados en la lista final
-    final_recommendations = []
-    for movie in similar_movies:
-        if movie not in final_recommendations:
-            final_recommendations.append(movie)
-        if len(final_recommendations) == 5:
-            break
-    
-    # Si después de eliminar duplicados aún hay menos de 5 recomendaciones, añadir más basadas en la similitud
-    if len(final_recommendations) < 5:
-        additional_indices = cosine_sim.argsort()[::-1][len(similar_movies)+1:]
-        additional_movies = movies_df.iloc[additional_indices]['title'].tolist()
-        additional_movies = [movie for movie in additional_movies if movie not in final_recommendations and movie != titulo]
-        final_recommendations.extend(additional_movies[:5 - len(final_recommendations)])
-    
-    return final_recommendations[:5]
+
+    #Devolver las películas recomendadas.
+    return recommended_movies
 
 
 # Ejecutar la aplicación con Uvicorn
