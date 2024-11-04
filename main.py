@@ -119,6 +119,64 @@ def votos_titulo(titulo: str):
     
     return f"La película '{titulo}' fue estrenada en el año {año_estreno}. La misma cuenta con un total de {cantidad_votos} valoraciones, con un promedio de {promedio_votos}"
 
+def get_actor(nombre_actor: str):
+
+    #Convierto a minuscula
+    nombre_actor = nombre_actor.lower()
+
+    #filtro las peliculas donde aparece el actor y no es director
+    peliculas_actor = df_movies[
+        (df_movies['actors'].apply(lambda x: nombre_actor in [actor.lower() for actor in x])) & 
+        (df_movies['director'].str.lower() != nombre_actor)
+    ]
+
+    #Si no hay películas del actor, devuelvo un error
+    if peliculas_actor.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontró el actor: {nombre_actor} o aparece como director")
+
+    #Calculos requeridos
+    cantidad_peliculas = len(peliculas_actor)
+    retorno = peliculas_actor['return'].sum()
+    promedio_retorno = retorno / cantidad_peliculas
+
+    return f"El actor {nombre_actor.title()} ha participado de {cantidad_peliculas} filmaciones, el mismo ha conseguido un retorno de {retorno:.2f} con un promedio de {promedio_retorno:.2f} por filmacion"
+
+# Endpoint 6: Se ingresa el nombre de un director, devuelve el éxito del mismo medido a través del retorno. Además, devuelve el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma
+@app.get("/get_director/{nombre_director}")
+def get_director(nombre_director: str) -> dict:
+
+    #Convierto a minuscula
+    nombre_director = nombre_director.lower()
+
+    #Filtro las peliculas por director
+    peliculas_director = df_movies[df_movies['director'].str.lower() == nombre_director]
+
+    #Si no encuentra las peliculas de acuerdo al director, devuelve error
+    if peliculas_director.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontro el director: {nombre_director}.")
+    
+    #Calculo el exito total del director a traves del retorno
+    retorno = peliculas_director['return'].sum()
+
+    #Preparo los detalles que necesito de las peliculas
+    peliculas_info = []
+    for _, pelicula in peliculas_director.iterrows():
+        peliculas_info.append({
+            "titulo": pelicula['title'],
+            "fecha_lanzamiento": pelicula['release_date'].strftime('%Y-%m-%d'),
+            "retorno": round(pelicula['return'], 2),
+            "costo": round(pelicula['budget'], 2),
+            "ganancia": round(pelicula['revenue'] - pelicula['budget'], 2)
+        })
+    
+
+    respuesta = {
+        "director": nombre_director.title(), 
+        "retorno": round(retorno, 2), 
+        "peliculas": peliculas_info
+    }
+
+    return respuesta
 
 
 # Ejecutar la aplicación con Uvicorn
