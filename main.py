@@ -134,23 +134,23 @@ async def votos_titulo(titulo: str):
     return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
 # Endpoint 5: Se ingresa el nombre de un actor, devuelve el éxito del mismo medido a través del retorno, la cantidad de películas en las que ha participado y el promedio de retorno
-@app.get("/get_actor/{nombre_actor}")
-def get_actor(nombre_actor: str):
+@app.get('/get_actor/{nombre_actor}')
+async def get_actor(nombre_actor: str):
 
-    #Convierto a minuscula
+    #Conviertir a minuscula
     nombre_actor = nombre_actor.lower()
 
-    #filtro las peliculas donde aparece el actor y no es director
+    #filtrar las peliculas donde aparece el actor y no es director
     peliculas_actor = df_movies[
         (df_movies['actors'].apply(lambda x: nombre_actor in [actor.lower() for actor in x])) & 
         (df_movies['director'].str.lower() != nombre_actor)
     ]
 
-    #Si no hay películas del actor, devuelvo un error
+    #Si no hay películas del actor, devuelver un error
     if peliculas_actor.empty:
         raise HTTPException(status_code=404, detail=f"No se encontró el actor: {nombre_actor} o aparece como director")
 
-    #Calculos requeridos
+    #Calcular requeridos
     cantidad_peliculas = len(peliculas_actor)
     retorno = peliculas_actor['return'].sum()
     promedio_retorno = retorno / cantidad_peliculas
@@ -159,7 +159,7 @@ def get_actor(nombre_actor: str):
 
 # Endpoint 6: Se ingresa el nombre de un director, devuelve el éxito del mismo medido a través del retorno. Además, devuelve el nombre de cada película con la fecha de lanzamiento, retorno individual, costo y ganancia de la misma
 @app.get("/get_director/{nombre_director}")
-def get_director(nombre_director: str) -> dict:
+async def get_director(nombre_director: str) -> dict:
 
     #Convierto a minuscula
     nombre_director = nombre_director.lower()
@@ -193,6 +193,8 @@ def get_director(nombre_director: str) -> dict:
     }
 
     return respuesta
+
+
 
 # Sistema de recomendacion: Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
 
