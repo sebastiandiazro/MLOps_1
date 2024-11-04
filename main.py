@@ -184,7 +184,7 @@ def get_director(nombre_director: str) -> dict:
 
 # Vectorización del texto usando TF-IDF
 vectorizer = TfidfVectorizer()
-tfidf_matrix = vectorizer.fit_transform(movies_df['combined_features'])
+tfidf_matrix = vectorizer.fit_transform(df_movies['combined_features'])
 
 @app.get("/recomendacion/{titulo}")
 def recomendacion(titulo: str):
