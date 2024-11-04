@@ -221,6 +221,10 @@ indices = pd.Series(df_recomendacion.index, index=df_recomendacion['title']).dro
 
 @app.get('/recomendacion_pelicula/{titulo}')
 def recomendacion(titulo: str) -> list:
+
+    # Convertir a minúscula para búsqueda
+    titulo = titulo.lower()
+    
     # Verificar si el título existe en el índice
     if titulo not in indices:
         raise ValueError("Película no encontrada")
